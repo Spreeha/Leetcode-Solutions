@@ -1,0 +1,52 @@
+Design a hit counter which counts the number of hits received in the past 5 minutes.
+
+Each function accepts a timestamp parameter (in seconds granularity) and you may assume that calls are being made to the system in chronological order (ie, the timestamp is monotonically increasing). You may assume that the earliest timestamp starts at 1.
+
+It is possible that several hits arrive roughly at the same time.
+
+Example:
+
+HitCounter counter = new HitCounter();
+
+// hit at timestamp 1.
+counter.hit(1);
+
+// hit at timestamp 2.
+counter.hit(2);
+
+// hit at timestamp 3.
+counter.hit(3);
+
+// get hits at timestamp 4, should return 3.
+counter.getHits(4);
+
+// hit at timestamp 300.
+counter.hit(300);
+
+// get hits at timestamp 300, should return 4.
+counter.getHits(300);
+
+// get hits at timestamp 301, should return 3.
+counter.getHits(301);
+
+Follow up:
+What if the number of hits per second could be very large? Does your design scale?
+
+Answer Source - GeeksForGeeks
+
+How to handle concurrent requests?
+
+When two requests update the list simultaneously, there can be race conditions. It’s possible that the request that updated the list first may not be included eventually.
+
+The most common solution is to use a lock to protect the list. Whenever someone wants to update the list (by either adding new elements or removing the tail), a lock will be placed on the container. After the operation finishes, the list will be unlocked.
+
+This works pretty well when you don’t have a large volume of requests or performance is not a concern. Placing a lock can be costly at some times and when there are too many concurrent requests, the lock may potentially block the system and becomes the performance bottleneck.
+
+
+Distribute the counter
+
+When a single machine gets too many traffic and performance becomes an issue, it’s the perfect time to think of distributed solution. Distributed system significantly reduces the burden of a single machine by scaling the system to multiple nodes, but at the same time adding complexity.
+
+Let’s say we distribute visit requests to multiple machines equally. I’d like to emphasize the importance of equal distribution first. If particular machines get much more traffic than the rest machines, the system doesn’t get to its full usage and it’s very important to take this into consideration when designing the system. In our case, we can get a hash of users email and distribute by the hash (it’s not a good idea to use email directly as some letter may appear much more frequent than the others).
+
+To count the number, each machine works independently to count its own users from the past minute. When we request the global number, we just need to add all counters together.
